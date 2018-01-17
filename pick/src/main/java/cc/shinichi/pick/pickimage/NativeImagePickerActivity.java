@@ -18,6 +18,7 @@ import cc.shinichi.pick.luban.Luban;
 import cc.shinichi.pick.luban.OnCompressListener;
 import cc.shinichi.pick.utils.PathUtil;
 import cc.shinichi.pick.utils.PhotoUtils;
+import com.unity3d.player.UnityPlayer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -227,7 +228,7 @@ public class NativeImagePickerActivity extends Activity {
             finish();
         }
         Log.d("sendMessageToUnity", "sendMessageToUnity: " + resultPath);
-        //UnityPlayer.UnitySendMessage("GameChatUI", "PickImagePathMessage", resultPath);
+        UnityPlayer.UnitySendMessage("GameChatUI", "PickImagePathMessage", resultPath);
         finish();
     }
 }
