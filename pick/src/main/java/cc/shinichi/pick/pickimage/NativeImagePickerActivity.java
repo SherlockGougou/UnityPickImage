@@ -107,9 +107,13 @@ public class NativeImagePickerActivity extends Activity {
             finish();
             return;
         }
+        String cacheDir = "/Android/data/" + context.getPackageName() + "/files/ChatImageCache";
+        String pathDir = Environment.getExternalStorageDirectory().getPath() + cacheDir;
+
         Luban.with(this).load(resultPath) // 传入要压缩的图片列表
             .ignoreBy(100)                        // 忽略不压缩图片的大小 KB
-            .setTargetDir(getImageCacheDirPath(context, "ChatImageCache")) // 设置压缩后文件存储位置
+            //.setTargetDir(getImageCacheDirPath(context, "ChatImageCache")) // 设置压缩后文件存储位置
+            .setTargetDir(pathDir) // 设置压缩后文件存储位置
             .setCompressListener(new OnCompressListener() { //设置回调
                 @Override public void onStart() {
                     // 开始压缩
