@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.util.Log;
@@ -24,6 +25,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
+import static android.os.Environment.DIRECTORY_PICTURES;
+
 /**
  * Created by SherlockHolmes on 2017/12/20.16:23
  */
@@ -33,6 +36,7 @@ public class NativeImagePickerActivity extends Activity {
     private Context context;
     private static String TAG = "NativeImagePickerActivity";
     public static final String AUTHORITY = "cc.shinichi.pickimagelibrary.fileprovider";
+    private static final String DEFAULT_DISK_CACHE_DIR = "ChatImageCache";
 
     private static final int CODE_GALLERY_REQUEST = 0xa0;
     private static final int CODE_CAMERA_REQUEST = 0xa1;
@@ -107,13 +111,9 @@ public class NativeImagePickerActivity extends Activity {
             finish();
             return;
         }
-        String cacheDir = "/Android/data/" + context.getPackageName() + "/files/ChatImageCache";
-        String pathDir = Environment.getExternalStorageDirectory().getPath() + cacheDir;
-
         Luban.with(this).load(resultPath) // 传入要压缩的图片列表
             .ignoreBy(100)                        // 忽略不压缩图片的大小 KB
-            //.setTargetDir(getImageCacheDirPath(context, "ChatImageCache")) // 设置压缩后文件存储位置
-            .setTargetDir(pathDir) // 设置压缩后文件存储位置
+            .setTargetDir(getImageCacheDir(context).getAbsolutePath()) // 设置压缩后文件存储位置
             .setCompressListener(new OnCompressListener() { //设置回调
                 @Override public void onStart() {
                     // 开始压缩
@@ -224,6 +224,42 @@ public class NativeImagePickerActivity extends Activity {
             Log.d(TAG, "getImageCacheDirPath:path 缓存文件获取成功==" + path);
         }
         return path;
+    }
+
+    /**
+     * Returns a directory with a default name in the private cache directory of the application to
+     * use to store retrieved audio.
+     *
+     * @param context A context.
+     * @see #getImageCacheDir(Context, String)
+     */
+    @Nullable private File getImageCacheDir(Context context) {
+        return getImageCacheDir(context, DEFAULT_DISK_CACHE_DIR);
+    }
+
+    /**
+     * Returns a directory with the given name in the private cache directory of the application to
+     * use to store retrieved media and thumbnails.
+     *
+     * @param context A context.
+     * @param cacheName The name of the subdirectory in which to store the cache.
+     * @see #getImageCacheDir(Context)
+     */
+    @Nullable private File getImageCacheDir(Context context, String cacheName) {
+        //File cacheDir = context.getExternalCacheDir();
+        File cacheDir = context.getExternalFilesDir(DIRECTORY_PICTURES);
+        if (cacheDir != null) {
+            File result = new File(cacheDir, cacheName);
+            if (!result.mkdirs() && (!result.exists() || !result.isDirectory())) {
+                // File wasn't able to create a directory, or the result exists but not a directory
+                return null;
+            }
+            return result;
+        }
+        if (Log.isLoggable(TAG, Log.ERROR)) {
+            Log.e(TAG, "default disk cache dir is null");
+        }
+        return null;
     }
 
     private void sendMessageToUnity(String resultPath) {
