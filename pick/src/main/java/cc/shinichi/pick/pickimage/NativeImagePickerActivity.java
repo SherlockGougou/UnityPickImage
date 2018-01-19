@@ -21,9 +21,6 @@ import cc.shinichi.pick.utils.PathUtil;
 import cc.shinichi.pick.utils.PhotoUtils;
 import com.unity3d.player.UnityPlayer;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 
 import static android.os.Environment.DIRECTORY_PICTURES;
 
@@ -112,7 +109,7 @@ public class NativeImagePickerActivity extends Activity {
             return;
         }
         Luban.with(this).load(resultPath) // 传入要压缩的图片列表
-            .ignoreBy(100)                        // 忽略不压缩图片的大小 KB
+            .ignoreBy(2)                        // 忽略不压缩图片的大小 KB
             .setTargetDir(getImageCacheDir(context).getAbsolutePath()) // 设置压缩后文件存储位置
             .setCompressListener(new OnCompressListener() { //设置回调
                 @Override public void onStart() {
@@ -152,79 +149,6 @@ public class NativeImagePickerActivity extends Activity {
             }
         }
     };
-
-    /**
-     * 复制文件到指定目录
-     */
-    public String copyFile(String oldPath, String newPath) {
-        try {
-            int bytesum = 0;
-            int byteread = 0;
-            File oldfile = new File(oldPath);
-            if (oldfile.exists()) { //文件存在时
-                InputStream inStream = new FileInputStream(oldPath); //读入原文件
-                FileOutputStream fs =
-                    new FileOutputStream(newPath + File.separator + oldfile.getName());
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((byteread = inStream.read(buffer)) != -1) {
-                    bytesum += byteread; //字节数 文件大小
-                    fs.write(buffer, 0, byteread);
-                }
-                inStream.close();
-                return newPath + File.separator + oldfile.getName();
-            } else {
-                return "";
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
-
-    /**
-     * 获取压缩后保存的路径
-     */
-    private String getImageCacheDirPath(Context context, String cacheName) {
-        String path = "";
-        File file = context.getExternalFilesDir(null);
-        if (file != null && file.exists()) {
-            path = file.getPath() + File.separator + cacheName;
-            File dirFile = new File(path);
-            if (!dirFile.exists()) {
-                boolean b = dirFile.mkdirs();
-                if (!b) {
-                    path = "";
-                }
-            }
-        } else {
-            path = "";
-        }
-        if (TextUtils.isEmpty(path)) {
-            String cacheDir = "/Android/data/" + context.getPackageName() + "/files/" + cacheName;
-            String pathError = Environment.getExternalStorageDirectory().getPath() + cacheDir;
-            File dirFile = new File(pathError);
-            if (!dirFile.exists()) {
-                boolean b = dirFile.mkdirs();
-                if (!b) {
-                    path = "";
-                } else {
-                    path = pathError;
-                }
-            } else {
-                path = pathError;
-            }
-        }
-        if (TextUtils.isEmpty(path)) {
-            Log.d(TAG, "getImageCacheDirPath:path 缓存文件获取失败==" + path);
-            t("操作失败，请返回重试");
-            finish();
-            return "";
-        } else {
-            Log.d(TAG, "getImageCacheDirPath:path 缓存文件获取成功==" + path);
-        }
-        return path;
-    }
 
     /**
      * Returns a directory with a default name in the private cache directory of the application to
